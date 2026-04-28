@@ -1,0 +1,1 @@
+"""Moduly rdzenia backendu ElektroScan."""

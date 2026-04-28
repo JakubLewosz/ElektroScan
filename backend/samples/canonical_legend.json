@@ -1,0 +1,134 @@
+[
+  {
+    "number": "01",
+    "name": "rozdzielnica_glowna_mieszkaniowa",
+    "label": "rozdzielnica główna mieszkaniowa",
+    "expectedCount": 0
+  },
+  {
+    "number": "02",
+    "name": "rozdzielnica_administracyjna_budynku",
+    "label": "rozdzielnica administracyjna budynku",
+    "expectedCount": 0
+  },
+  {
+    "number": "03",
+    "name": "teletechniczna_skrzynka_mieszkaniowa",
+    "label": "teletechniczna skrzynka mieszkaniowa",
+    "expectedCount": 0
+  },
+  {
+    "number": "04",
+    "name": "glowna_szyna_wyrownawcza",
+    "label": "główna szyna wyrównawcza",
+    "expectedCount": 0
+  },
+  {
+    "number": "05",
+    "name": "lokalna_miejscowa_szyna_wyrownawcza",
+    "label": "lokalna (miejscowa) szyna wyrównawcza",
+    "expectedCount": 4
+  },
+  {
+    "number": "06",
+    "name": "gniazdo_230v_pojedyncze_z_uziemieniem",
+    "label": "gniazdo 230V pojedyncze z uziemieniem",
+    "expectedCount": 24
+  },
+  {
+    "number": "07",
+    "name": "gniazdo_230v_podwojne_z_uziemieniem",
+    "label": "gniazdo 230V podwójne z uziemieniem",
+    "expectedCount": 30
+  },
+  {
+    "number": "08",
+    "name": "wypust_400v_zasilanie_kuchenki_zakonczony_puszka_n_t",
+    "label": "wypust 400V zasilanie kuchenki zakończony puszką n/t",
+    "expectedCount": 0
+  },
+  {
+    "number": "09",
+    "name": "gniazdo_230v_pojedyncze_z_uziemieniem_bryzgoszczelne",
+    "label": "gniazdo 230V pojedyncze z uziemieniem, bryzgoszczelne",
+    "expectedCount": 12
+  },
+  {
+    "number": "10",
+    "name": "lacznik_schodowy",
+    "label": "łącznik schodowy",
+    "expectedCount": 4
+  },
+  {
+    "number": "11",
+    "name": "lacznik_jednobiegunowy",
+    "label": "łącznik jednobiegunowy",
+    "expectedCount": 4
+  },
+  {
+    "number": "12",
+    "name": "lacznik_swiecznikowy",
+    "label": "łącznik świecznikowy",
+    "expectedCount": 16
+  },
+  {
+    "number": "13",
+    "name": "wypust_oswietleniowy_sufitowy",
+    "label": "wypust oświetleniowy sufitowy",
+    "expectedCount": 24
+  },
+  {
+    "number": "14",
+    "name": "wypust_oswietleniowy_scienny",
+    "label": "wypust oświetleniowy ścienny",
+    "expectedCount": 4
+  },
+  {
+    "number": "15",
+    "name": "oprawa_oswietleniowa_z_czujnikiem_ruchu",
+    "label": "oprawa oświetleniowa z czujnikiem ruchu",
+    "expectedCount": 0
+  },
+  {
+    "number": "16",
+    "name": "oprawa_oswietleniowa",
+    "label": "oprawa oświetleniowa",
+    "expectedCount": 0
+  },
+  {
+    "number": "17",
+    "name": "gniazdo_2xrj45_kat_5e",
+    "label": "gniazdo 2xRJ45 kat 5e",
+    "expectedCount": 0
+  },
+  {
+    "number": "18",
+    "name": "gniazdo_tv_1xrg6",
+    "label": "gniazdo TV 1xRG6",
+    "expectedCount": 0
+  },
+  {
+    "number": "19",
+    "name": "orurowanie_do_tsm",
+    "label": "orurowanie do TSM",
+    "expectedCount": 12
+  },
+  {
+    "number": "20",
+    "name": "przycisk_zwierny_dzwonek",
+    "label": "przycisk zwierny - dzwonek",
+    "expectedCount": 0
+  },
+  {
+    "number": "21",
+    "name": "panel_wywolania_wideodomofon",
+    "label": "panel wywołania - wideodomofon",
+    "expectedCount": 0
+  },
+  {
+    "number": "22",
+    "name": "unifon_mieszkaniowy",
+    "label": "unifon mieszkaniowy",
+    "expectedCount": 0
+  }
+]

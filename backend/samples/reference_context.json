@@ -1,0 +1,24 @@
+{
+  "source": "957aae7c-d81d-41c1-bd67-dfe120327514.json",
+  "analysisId": "957aae7c-d81d-41c1-bd67-dfe120327514",
+  "hiddenLayersUsed": [
+    "220-A Ściany",
+    "Okna ARCHICADa",
+    "Znaczniki okien ARCHICADa",
+    "321-W Otwory",
+    "Metryczki pomieszczeń ARCHICADa",
+    "810-G Ogólne",
+    "0",
+    "Drzwi ARCHICAD",
+    "Znaczniki drzwi ARCHICADa",
+    "320-W Umeblowanie",
+    "319-W Umeblowanie ukryte",
+    "224-A ściany szczytowe",
+    "299-A Wymiary Opisy",
+    "840-G Znaczniki ogólne",
+    "830-G Teksty Etykiety",
+    "230-A Ściany działowe",
+    "410-K Osie"
+  ],
+  "excludedZonesUsed": []
+}

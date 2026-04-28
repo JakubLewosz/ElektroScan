@@ -1,0 +1,51 @@
+# ── Python / Backend ──
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# venvs
+.venv/
+venv/
+env/
+ENV/
+
+# ── Node / Frontend ──
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
+
+# ── Dane sesji (NIE commituj uploadów ani template'ów) ──
+backend/data/sessions/
+
+# ── Pliki referencyjne ──
+# UWAGA: backend/samples/plan.pdf JEST commitowany — to nasz benchmark.
+# Tylko jeśli plan zawiera dane wrażliwe, dodaj go tutaj ręcznie.
+# backend/samples/plan.pdf
+
+# ── Edytory / OS ──
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logi / Tymczasowe ──
+*.log
+*.tmp
+.env
+.env.local
+.env.*.local
+
+# ── Lokalne kopie robocze ──
+backend/core/legend_extractor 2.py
+backend/core/pdf_render 2.py

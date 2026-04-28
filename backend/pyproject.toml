@@ -1,0 +1,25 @@
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+extend-exclude = "core/.* 2\\.py"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["core/* 2.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_return_any = false
+warn_unused_ignores = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
