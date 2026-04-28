@@ -51,12 +51,18 @@ class RenameTemplateRequest(BaseModel):
     newName: str
 
 
+class TemplateDiagnostics(BaseModel):
+    matchesOnPlan: int = 0
+    lowConfidenceExtraction: bool = False
+
+
 class TemplateInfo(BaseModel):
     name: str
     displayName: str
     imgBase64: str
     width: int
     height: int
+    diagnostics: TemplateDiagnostics | None = None
 
 
 class ProgressEvent(BaseModel):

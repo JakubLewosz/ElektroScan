@@ -15,8 +15,13 @@ from core.config import (
     LEGEND_MIN_DENSITY,
     LEGEND_MIN_HEIGHT,
     LEGEND_MIN_WIDTH,
+    PLAN_AWARE_DEDUP_RADIUS_FACTOR,
+    PLAN_AWARE_MATCH_THRESHOLD,
+    PLAN_AWARE_MAX_PEAKS,
+    PLAN_AWARE_PLAN_HSV_LOWER,
+    PLAN_AWARE_PLAN_HSV_UPPER,
 )
-from core.models import Rect, TemplateInfo
+from core.models import Rect, TemplateDiagnostics, TemplateInfo
 from core.pdf_render import pdf_to_bgr
 from core.storage import add_template_image, clear_templates, list_templates, sanitize_name
 
@@ -55,6 +60,18 @@ SYMBOL_CROP_PADDING_PX = 2
 # near-zero gap. Using center_x with this tolerance ensures components
 # are matched even when their left edge slightly exceeds the label boundary.
 SYMBOL_X_OVERHANG_PX = 40
+# When multiple symbols share a single label row, vertical gaps larger
+# than this fraction of the median symbol height split the row into
+# separate templates. The threshold is intentionally conservative: a
+# typical multi-component symbol (outline plus inner mark) has gaps
+# well below the median symbol height, so we only split when the gap
+# clearly exceeds one symbol height.
+ROW_SUBCLUSTER_GAP_FACTOR = 1.2
+ROW_SUBCLUSTER_MIN_GAP_PX = 12.0
+# Each sub-cluster must occupy at least this fraction of LEGEND_MIN_HEIGHT
+# to be emitted as a separate template — prevents tiny stray components
+# being treated as second symbols.
+ROW_SUBCLUSTER_MIN_HEIGHT_RATIO = 0.6
 
 
 def _normalize_heading(value: str) -> str:
@@ -137,6 +154,73 @@ def _main_label_block(row: LegendRow) -> TextBlock:
     return max(row.blocks, key=lambda block: (len(sanitize_name(block.text)), block.x0))
 
 
+def _median_symbol_height(components: list[MaskComponent]) -> float:
+    if not components:
+        return 24.0
+    heights = sorted(component.height for component in components)
+    middle = heights[len(heights) // 2]
+    return float(max(8, middle))
+
+
+def _split_row_clusters(components: list[MaskComponent], median_symbol_height: float) -> list[list[MaskComponent]]:
+    if not components:
+        return []
+    sorted_components = sorted(components, key=lambda component: component.center_y)
+    gap_threshold = max(ROW_SUBCLUSTER_MIN_GAP_PX, median_symbol_height * ROW_SUBCLUSTER_GAP_FACTOR)
+    clusters: list[list[MaskComponent]] = [[sorted_components[0]]]
+    for component in sorted_components[1:]:
+        previous_bottom = max(item.y + item.height for item in clusters[-1])
+        gap = component.y - previous_bottom
+        if gap > gap_threshold:
+            clusters.append([component])
+        else:
+            clusters[-1].append(component)
+    return _filter_substantive_clusters(clusters)
+
+
+def _filter_substantive_clusters(
+    clusters: list[list[MaskComponent]],
+) -> list[list[MaskComponent]]:
+    if len(clusters) <= 1:
+        return clusters
+
+    min_height = max(1, int(LEGEND_MIN_HEIGHT * ROW_SUBCLUSTER_MIN_HEIGHT_RATIO))
+    substantive: list[list[MaskComponent]] = []
+    leftover: list[MaskComponent] = []
+    for cluster in clusters:
+        cluster_top = min(component.y for component in cluster)
+        cluster_bottom = max(component.y + component.height for component in cluster)
+        cluster_height = cluster_bottom - cluster_top
+        if cluster_height < min_height:
+            leftover.extend(cluster)
+            continue
+        substantive.append(cluster)
+
+    if not substantive:
+        # Nothing met the substantive threshold — fall back to the union
+        # of all components in the row so the row still emits one template.
+        return [sum(clusters, [])]
+
+    if leftover:
+        # Attach leftover components to the nearest substantive cluster.
+        for component in leftover:
+            target = min(
+                substantive,
+                key=lambda existing: min(abs(component.center_y - item.center_y) for item in existing),
+            )
+            target.append(component)
+
+    return substantive
+
+
+def _next_unclaimed_row_label(rows: list[LegendRow], row_index: int, claimed_indices: set[int]) -> str | None:
+    for offset in range(row_index + 1, len(rows)):
+        if offset in claimed_indices:
+            continue
+        return _main_label_block(rows[offset]).text
+    return None
+
+
 def _mask_components(mask: np.ndarray) -> list[MaskComponent]:
     count, _, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=8)
     components: list[MaskComponent] = []
@@ -202,7 +286,9 @@ def _row_templates_from_text_blocks(
 ) -> list[tuple[int, int, int, int, str, np.ndarray]]:
     rows = _group_text_rows(blocks, clip)
     components = _mask_components(mask)
+    median_height = _median_symbol_height(components)
     items: list[tuple[int, int, int, int, str, np.ndarray]] = []
+    rows_with_symbols: set[int] = set()
     for index, row in enumerate(rows):
         block = _main_label_block(row)
         previous_center = rows[index - 1].center_y if index > 0 else row.center_y - 8
@@ -226,35 +312,140 @@ def _row_templates_from_text_blocks(
         if not row_components:
             continue
 
-        cx = min(component.x for component in row_components)
-        cy = min(component.y for component in row_components)
-        cw = max(component.x + component.width for component in row_components) - cx
-        ch = max(component.y + component.height for component in row_components) - cy
-        if cw < LEGEND_MIN_WIDTH or ch < LEGEND_MIN_HEIGHT:
+        sub_clusters = _split_row_clusters(row_components, median_height)
+        if not sub_clusters:
             continue
 
-        absolute_x = clip_x_px + cx
-        absolute_y = clip_y_px + row_top + cy
-        if any(_rect_intersects(zone, absolute_x, absolute_y, cw, ch) for zone in excluded):
-            continue
+        rows_with_symbols.add(index)
+        primary_label = sanitize_name(block.text, fallback=f"symbol_{len(items) + 1:02d}")
+        next_label_text = _next_unclaimed_row_label(rows, index, rows_with_symbols)
 
-        pixel_count = sum(component.area for component in row_components)
-        density = pixel_count / max(1, cw * ch)
-        if density < LEGEND_MIN_DENSITY:
-            continue
+        for sub_index, cluster in enumerate(sub_clusters):
+            cx = min(component.x for component in cluster)
+            cy = min(component.y for component in cluster)
+            cw = max(component.x + component.width for component in cluster) - cx
+            ch = max(component.y + component.height for component in cluster) - cy
+            if cw < LEGEND_MIN_WIDTH or ch < LEGEND_MIN_HEIGHT:
+                continue
 
-        source_y0 = max(0, cy - SYMBOL_CROP_PADDING_PX)
-        source_y1 = min(legend.shape[0], cy + ch + SYMBOL_CROP_PADDING_PX)
-        source_x0 = max(0, cx - SYMBOL_CROP_PADDING_PX)
-        source_x1 = min(legend.shape[1], cx + cw + SYMBOL_CROP_PADDING_PX)
-        roi = legend[source_y0:source_y1, source_x0:source_x1]
-        roi_mask = mask[source_y0:source_y1, source_x0:source_x1]
-        template = np.zeros_like(roi)
-        template[roi_mask > 0] = roi[roi_mask > 0]
-        label = sanitize_name(block.text, fallback=f"symbol_{len(items) + 1:02d}")
-        items.append((absolute_y, absolute_x, cw, ch, label, template))
+            absolute_x = clip_x_px + cx
+            absolute_y = clip_y_px + cy
+            if any(_rect_intersects(zone, absolute_x, absolute_y, cw, ch) for zone in excluded):
+                continue
+
+            pixel_count = sum(component.area for component in cluster)
+            density = pixel_count / max(1, cw * ch)
+            if density < LEGEND_MIN_DENSITY:
+                continue
+
+            source_y0 = max(0, cy - SYMBOL_CROP_PADDING_PX)
+            source_y1 = min(legend.shape[0], cy + ch + SYMBOL_CROP_PADDING_PX)
+            source_x0 = max(0, cx - SYMBOL_CROP_PADDING_PX)
+            source_x1 = min(legend.shape[1], cx + cw + SYMBOL_CROP_PADDING_PX)
+            roi = legend[source_y0:source_y1, source_x0:source_x1]
+            roi_mask = mask[source_y0:source_y1, source_x0:source_x1]
+            template = np.zeros_like(roi)
+            template[roi_mask > 0] = roi[roi_mask > 0]
+
+            if sub_index == 0:
+                label = primary_label
+            elif sub_index == 1 and next_label_text is not None:
+                label = sanitize_name(next_label_text, fallback=f"{primary_label}_b")
+            else:
+                label = f"{primary_label}_b" if sub_index == 1 else f"{primary_label}_{chr(ord('b') + sub_index - 1)}"
+
+            items.append((absolute_y, absolute_x, cw, ch, label, template))
 
     return items
+
+
+def _plan_mask(plan_image: np.ndarray) -> np.ndarray:
+    hsv = cv2.cvtColor(plan_image, cv2.COLOR_BGR2HSV)
+    return cv2.inRange(
+        hsv,
+        np.array(PLAN_AWARE_PLAN_HSV_LOWER),
+        np.array(PLAN_AWARE_PLAN_HSV_UPPER),
+    )
+
+
+def _template_colored_mask(template: np.ndarray) -> np.ndarray:
+    hsv = cv2.cvtColor(template, cv2.COLOR_BGR2HSV)
+    return cv2.inRange(
+        hsv,
+        np.array(PLAN_AWARE_PLAN_HSV_LOWER),
+        np.array(PLAN_AWARE_PLAN_HSV_UPPER),
+    )
+
+
+def _count_plan_matches(plan_mask: np.ndarray, template: np.ndarray) -> int:
+    if template.size == 0:
+        return 0
+    template_mask = _template_colored_mask(template)
+    if template_mask.shape[0] < 4 or template_mask.shape[1] < 4:
+        return 0
+    if int(cv2.countNonZero(template_mask)) < 4:
+        return 0
+
+    # Downscale both plan and template for diagnostic matching — accuracy
+    # within +/- 1 instance is plenty for the low-confidence flag and the
+    # speedup is substantial (~4x).
+    scale = 0.5
+    scaled_plan = cv2.resize(
+        plan_mask,
+        (max(1, int(plan_mask.shape[1] * scale)), max(1, int(plan_mask.shape[0] * scale))),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    scaled_template = cv2.resize(
+        template_mask,
+        (max(1, int(template_mask.shape[1] * scale)), max(1, int(template_mask.shape[0] * scale))),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    height, width = scaled_template.shape[:2]
+    if height < 4 or width < 4:
+        return 0
+    if height >= scaled_plan.shape[0] or width >= scaled_plan.shape[1]:
+        return 0
+
+    response = cv2.matchTemplate(scaled_plan, scaled_template, cv2.TM_CCOEFF_NORMED)
+    peaks_mask = (response >= PLAN_AWARE_MATCH_THRESHOLD) & (
+        response == cv2.dilate(response, np.ones((3, 3), dtype=np.float32))
+    )
+    ys, xs = np.where(peaks_mask)
+    if xs.size == 0:
+        return 0
+
+    scores = response[ys, xs]
+    order = np.argsort(scores)[::-1]
+    if order.size > PLAN_AWARE_MAX_PEAKS:
+        order = order[:PLAN_AWARE_MAX_PEAKS]
+    xs_sorted = xs[order]
+    ys_sorted = ys[order]
+
+    radius = max(1.0, max(width, height) * PLAN_AWARE_DEDUP_RADIUS_FACTOR)
+    kept_x: list[float] = []
+    kept_y: list[float] = []
+    for x, y in zip(xs_sorted.tolist(), ys_sorted.tolist(), strict=False):
+        if any(((x - kx) ** 2 + (y - ky) ** 2) ** 0.5 < radius for kx, ky in zip(kept_x, kept_y, strict=False)):
+            continue
+        kept_x.append(float(x))
+        kept_y.append(float(y))
+    return len(kept_x)
+
+
+def _refine_templates_against_plan(
+    plan_image: np.ndarray,
+    items: list[tuple[int, int, int, int, str, np.ndarray]],
+) -> list[tuple[int, int, int, int, str, np.ndarray, TemplateDiagnostics]]:
+    plan_mask = _plan_mask(plan_image)
+    refined: list[tuple[int, int, int, int, str, np.ndarray, TemplateDiagnostics]] = []
+    for absolute_y, absolute_x, cw, ch, label, template in items:
+        match_count = _count_plan_matches(plan_mask, template)
+        diagnostics = TemplateDiagnostics(
+            matchesOnPlan=match_count,
+            lowConfidenceExtraction=match_count == 0,
+        )
+        refined.append((absolute_y, absolute_x, cw, ch, label, template, diagnostics))
+    return refined
 
 
 def extract_legend_templates(
@@ -331,7 +522,8 @@ def extract_legend_templates(
             label = _label_for_contour(text_blocks, clip, cx, cy, cw, ch, scale, len(items) + 1)
             items.append((y0 + cy, x0 + cx, cw, ch, label, template))
 
-    for _, _, _, _, label, template in sorted(items, key=lambda item: (item[0], item[1])):
-        add_template_image(session_id, label, template)
+    refined = _refine_templates_against_plan(page_image, items)
+    for _, _, _, _, label, template, diagnostics in sorted(refined, key=lambda entry: (entry[0], entry[1])):
+        add_template_image(session_id, label, template, diagnostics=diagnostics)
 
     return list_templates(session_id)

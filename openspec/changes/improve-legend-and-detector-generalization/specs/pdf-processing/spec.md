@@ -2,10 +2,12 @@
 
 ## ADDED Requirements
 
-### Requirement: Symbol-first legend segmentation
+### Requirement: Vertical sub-clustering inside legend rows
 
-The system SHALL segment legend symbols from the colored mask before
-assigning text labels, so that legend rows are not the primary geometry.
+Within each legend row band, the system SHALL split colored components
+into sub-clusters by vertical gap and emit one template per sub-cluster,
+so that multiple symbols stacked under a single text label become
+separate templates.
 
 #### Scenario: Two symbols stacked vertically under one label row
 
@@ -21,22 +23,31 @@ assigning text labels, so that legend rows are not the primary geometry.
 
 - GIVEN a legend symbol with surrounding whitespace inside its row
 - WHEN extraction segments the symbol
-- THEN the stored template bounding box matches the symbol footprint,
-  not the row span
+- THEN the stored template bounding box matches the union of the
+  sub-cluster's mask components, not the full row span
 
-### Requirement: Plan-aware template refinement
+#### Scenario: Conservative split
+
+- GIVEN a single symbol made of multiple closely spaced mask components
+  (for example an outline plus an inner mark)
+- WHEN extraction runs
+- THEN the components remain in one sub-cluster
+- AND only one template is emitted for the row
+
+### Requirement: Plan-aware template diagnostics
 
 After legend extraction, the system SHALL run a coarse template match
-against the plan image and use the resulting clusters to refine each
-extracted template.
+against the plan image and attach diagnostics to each extracted template
+based on the resulting plan evidence.
 
-#### Scenario: Tighten bounding box from plan evidence
+#### Scenario: Count plan matches per template
 
-- GIVEN an extracted template whose bounding box differs by more than
-  30 % in area from the median bounding box of its strongest plan matches
+- GIVEN a freshly extracted legend template
 - WHEN refinement runs
-- THEN the template is re-cropped to the median plan footprint
-- AND its colored mask is regenerated for the new crop
+- THEN the template diagnostics include the number of strong, deduplicated
+  matches found on the plan
+- AND the diagnostics field is optional in `TemplateInfo` so that existing
+  clients keep working without changes
 
 #### Scenario: Flag templates without plan evidence
 
@@ -48,15 +59,22 @@ extracted template.
 ### Requirement: Adaptive matching thresholds
 
 The detector SHALL choose the template-matching threshold from per-template
-metrics (size, mask density, component count) instead of hardcoded keyword
+metrics (plan evidence count, mask density) instead of hardcoded keyword
 lists in symbol names.
 
-#### Scenario: Threshold from template metrics
+#### Scenario: Threshold from plan evidence
 
-- GIVEN a template with a small footprint and low component count
+- GIVEN a template with many recorded plan matches in its diagnostics
 - WHEN matching runs
-- THEN the strict or medium threshold is selected
+- THEN a strict threshold is selected
 - AND no decision branches on the symbol name string
+
+#### Scenario: Threshold without diagnostics
+
+- GIVEN a template without plan-evidence diagnostics (for example a
+  user-uploaded template)
+- WHEN matching runs
+- THEN the threshold is derived from mask density
 
 #### Scenario: Reference profile unaffected
 
@@ -88,20 +106,19 @@ fallback detection without the reference JSON profile.
 
 ### Requirement: Legend anchor extraction
 
-The system SHALL locate the legend using the `LEGENDA` text anchor and
-extract symbol templates by clustering colored mask components, then
-assigning the closest text label to each cluster.
+The system SHALL locate the legend using the `LEGENDA` text anchor,
+group label text into rows, and extract per-row symbol templates by
+sub-clustering colored mask components within each row band.
 
-#### Scenario: Symbol cluster precedes label assignment
+#### Scenario: Row-band components are sub-clustered before emitting templates
 
-- GIVEN the legend mask contains colored components
-- WHEN extraction runs
-- THEN components are first clustered into symbol candidates
-- AND each cluster is paired with the closest legend label by vertical
-  proximity, with tolerance derived from the median symbol height
+- WHEN row components are gathered for a label row
+- THEN they are split into sub-clusters by vertical gap
+- AND each sub-cluster emits its own template with a per-cluster bounding
+  box and a deterministic label
 
 #### Scenario: Text-based extraction is insufficient
 
-- GIVEN cluster-based extraction returns too few templates
+- GIVEN row sub-clustering returns too few templates
 - WHEN contour extraction is available
 - THEN the system falls back to contour-based template extraction

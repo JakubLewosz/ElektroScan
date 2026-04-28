@@ -53,6 +53,20 @@ if [[ "${ELEKTROSCAN_FALLBACK_BENCHMARK:-0}" == "1" ]]; then
   )
 fi
 
+if [[ "${ELEKTROSCAN_GENERALIZATION_SMOKE:-0}" == "1" ]]; then
+  echo
+  echo "== Generalization smoke =="
+  (
+    cd "$ROOT_DIR/backend"
+    .venv/bin/python fallback_benchmark.py --strict
+    if [[ -n "${ELEKTROSCAN_ALT_PDF:-}" ]]; then
+      echo
+      echo "-- Alternative PDF: $ELEKTROSCAN_ALT_PDF --"
+      .venv/bin/python fallback_benchmark.py --alt-pdf "$ELEKTROSCAN_ALT_PDF"
+    fi
+  )
+fi
+
 echo
 echo "== Frontend build =="
 (

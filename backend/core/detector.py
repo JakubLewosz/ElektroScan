@@ -51,6 +51,7 @@ class TemplateVariant:
     image: np.ndarray
     mask: np.ndarray
     mean_hsv: np.ndarray
+    matches_on_plan: int = 0
 
 
 @dataclass
@@ -108,6 +109,7 @@ def _build_variants(session_id: str) -> list[TemplateVariant]:
         if cv2.countNonZero(base_mask) < 3:
             continue
 
+        matches_on_plan = record.diagnostics.matchesOnPlan if record.diagnostics else 0
         for angle in MATCH_ROTATIONS:
             rotated_image = _rotate(image, angle)
             rotated_mask = _rotate(base_mask, angle)
@@ -123,6 +125,7 @@ def _build_variants(session_id: str) -> list[TemplateVariant]:
                         image=scaled_image,
                         mask=scaled_mask,
                         mean_hsv=_mean_hsv(scaled_image, scaled_mask),
+                        matches_on_plan=matches_on_plan,
                     )
                 )
     return variants
@@ -279,6 +282,32 @@ def _nms(candidates: list[Candidate], cross_symbol: bool = False) -> list[Candid
     return kept
 
 
+def _threshold_for_variant(variant: TemplateVariant) -> float:
+    """Pick a matching threshold from per-template metrics so the detector
+    works on any PDF without keyword heuristics in symbol names.
+
+    Primary signal is plan evidence: symbols that appear many times on the
+    plan need the strictest threshold to keep false positives down, while
+    rare/unique symbols need the loosest threshold to find their single
+    instance. When plan evidence is unavailable (uploaded template, plan
+    aware refinement disabled) we fall back to mask density.
+    """
+    matches = max(0, variant.matches_on_plan)
+    if matches >= 25:
+        return MATCH_THRESHOLD_MEDIUM
+    if matches >= 8:
+        return MATCH_THRESHOLD_STRICT
+    if matches >= 1:
+        return MATCH_THRESHOLD_LOOSE
+
+    nonzero = int(cv2.countNonZero(variant.mask))
+    height, width = variant.mask.shape[:2]
+    density = nonzero / max(1, height * width)
+    if density >= 0.30:
+        return MATCH_THRESHOLD_STRICT
+    return MATCH_THRESHOLD_LOOSE
+
+
 def _match_variants(
     plan: np.ndarray, variants: list[TemplateVariant], excluded_zones: list[Rect], on_progress
 ) -> list[Candidate]:
@@ -288,15 +317,7 @@ def _match_variants(
     last_percent = 20
 
     for index, variant in enumerate(variants, start=1):
-        threshold = (
-            MATCH_THRESHOLD_STRICT
-            if any(key in variant.display_name for key in ("gniazdo", "wypust"))
-            else (
-                MATCH_THRESHOLD_MEDIUM
-                if any(key in variant.display_name for key in ("lacznik", "oprawa", "orurowanie"))
-                else MATCH_THRESHOLD_LOOSE
-            )
-        )
+        threshold = _threshold_for_variant(variant)
         search_mask = plan_mask
         template_mask = variant.mask
         if threshold == MATCH_THRESHOLD_LOOSE:

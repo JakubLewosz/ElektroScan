@@ -47,3 +47,13 @@ NMS_IOM_THRESHOLD = 0.72
 NMS_CENTROID_FACTOR = 0.28
 CROSS_NMS_IOU_THRESHOLD = 0.55
 CROSS_NMS_IOM_THRESHOLD = 0.88
+
+# Plan-aware legend refinement: after extracting templates from the legend,
+# the extractor runs a coarse match against the plan to count instances and
+# flag templates that have no plan evidence. The threshold is intentionally
+# loose; we only need approximate counts for diagnostics.
+PLAN_AWARE_MATCH_THRESHOLD = 0.40
+PLAN_AWARE_DEDUP_RADIUS_FACTOR = 0.5
+PLAN_AWARE_MAX_PEAKS = 400
+PLAN_AWARE_PLAN_HSV_LOWER = (0, 30, 50)
+PLAN_AWARE_PLAN_HSV_UPPER = (180, 255, 255)

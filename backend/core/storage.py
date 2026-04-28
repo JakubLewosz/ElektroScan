@@ -13,7 +13,7 @@ import numpy as np
 from fastapi import HTTPException
 
 from core.config import SESSIONS_DIR
-from core.models import TemplateInfo
+from core.models import TemplateDiagnostics, TemplateInfo
 
 TEMPLATE_METADATA_FILE = "templates.json"
 POLISH_ASCII_TRANSLATION = str.maketrans(
@@ -45,6 +45,7 @@ class TemplateRecord:
     name: str
     display_name: str
     file_name: str
+    diagnostics: TemplateDiagnostics | None = None
 
 
 def create_session_dir() -> tuple[str, Path]:
@@ -92,27 +93,35 @@ def load_template_records(session_id: str) -> list[TemplateRecord]:
         return []
 
     data = json.loads(metadata_path.read_text(encoding="utf-8"))
-    return [
-        TemplateRecord(
-            name=str(item["name"]),
-            display_name=str(item.get("displayName") or item["name"]),
-            file_name=str(item.get("fileName") or f"{item['name']}.png"),
+    records: list[TemplateRecord] = []
+    for item in data:
+        diagnostics_raw = item.get("diagnostics")
+        diagnostics = TemplateDiagnostics(**diagnostics_raw) if isinstance(diagnostics_raw, dict) else None
+        records.append(
+            TemplateRecord(
+                name=str(item["name"]),
+                display_name=str(item.get("displayName") or item["name"]),
+                file_name=str(item.get("fileName") or f"{item['name']}.png"),
+                diagnostics=diagnostics,
+            )
         )
-        for item in data
-    ]
+    return records
 
 
 def save_template_records(session_id: str, records: list[TemplateRecord]) -> None:
     metadata_path = get_templates_dir(session_id) / TEMPLATE_METADATA_FILE
+    payload = []
+    for record in records:
+        entry: dict[str, object] = {
+            "name": record.name,
+            "displayName": record.display_name,
+            "fileName": record.file_name,
+        }
+        if record.diagnostics is not None:
+            entry["diagnostics"] = record.diagnostics.model_dump()
+        payload.append(entry)
     metadata_path.write_text(
-        json.dumps(
-            [
-                {"name": record.name, "displayName": record.display_name, "fileName": record.file_name}
-                for record in records
-            ],
-            ensure_ascii=False,
-            indent=2,
-        ),
+        json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
@@ -128,7 +137,12 @@ def next_template_name(records: list[TemplateRecord], display_name: str) -> str:
         index += 1
 
 
-def add_template_image(session_id: str, display_name: str, image: np.ndarray) -> TemplateRecord:
+def add_template_image(
+    session_id: str,
+    display_name: str,
+    image: np.ndarray,
+    diagnostics: TemplateDiagnostics | None = None,
+) -> TemplateRecord:
     records = load_template_records(session_id)
     name = next_template_name(records, display_name)
     file_name = f"{name}.png"
@@ -139,7 +153,12 @@ def add_template_image(session_id: str, display_name: str, image: np.ndarray) ->
         raise ValueError("Nie udalo sie zakodowac template'u PNG.")
 
     path.write_bytes(encoded.tobytes())
-    record = TemplateRecord(name=name, display_name=sanitize_name(display_name), file_name=file_name)
+    record = TemplateRecord(
+        name=name,
+        display_name=sanitize_name(display_name),
+        file_name=file_name,
+        diagnostics=diagnostics,
+    )
     records.append(record)
     save_template_records(session_id, records)
     return record
@@ -166,6 +185,7 @@ def list_templates(session_id: str) -> list[TemplateInfo]:
                 imgBase64="data:image/png;base64," + base64.b64encode(data).decode("ascii"),
                 width=int(image.shape[1]),
                 height=int(image.shape[0]),
+                diagnostics=record.diagnostics,
             )
         )
 
@@ -194,7 +214,7 @@ def rename_template(session_id: str, template_name: str, new_name: str) -> None:
     found = False
     for record in records:
         if record.name == template_name:
-            updated.append(TemplateRecord(record.name, normalized, record.file_name))
+            updated.append(TemplateRecord(record.name, normalized, record.file_name, record.diagnostics))
             found = True
         else:
             updated.append(record)
