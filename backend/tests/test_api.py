@@ -53,14 +53,14 @@ def test_layers_and_legend_extraction(client: TestClient, uploaded_session: str)
     )
     assert legend.status_code == 200
     templates = legend.json()
-    assert len(templates) == 19
+    assert len(templates) == 22
     assert all(template["imgBase64"].startswith("data:image/png;base64,") for template in templates)
     assert {template["name"] for template in templates} >= {
-        "07_lacznik_schodowy",
-        "08_lacznik_jednobiegunowy",
-        "09_lacznik_swiecznikowy",
-        "16_r_orurowanie_do_tsm",
-        "18_panel_wywolania_wideodomofon",
+        "10_lacznik_schodowy",
+        "11_lacznik_jednobiegunowy",
+        "12_lacznik_swiecznikowy",
+        "19_r_orurowanie_do_tsm",
+        "21_panel_wywolania_wideodomofon",
     }
     assert max(template["height"] for template in templates) <= 90
 

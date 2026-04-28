@@ -49,3 +49,85 @@ The project SHALL prioritize correctness on `backend/samples/plan.pdf` over broa
 - WHEN the trade-off is identified
 - THEN the generalized behavior is rejected or constrained
 - AND the reference-plan behavior remains the acceptance baseline
+
+### Requirement: System-wide verification baseline
+
+Every non-trivial code change SHALL preserve a documented verification baseline.
+
+#### Scenario: Backend or detector change
+
+- GIVEN a change modifies backend endpoints, PDF processing, template extraction, or detection
+- WHEN implementation is complete
+- THEN backend compile checks pass
+- AND the reference benchmark is run
+- AND any benchmark regression is reported before final delivery
+
+#### Scenario: Frontend change
+
+- GIVEN a change modifies React, TypeScript, API client code, or canvas behavior
+- WHEN implementation is complete
+- THEN the frontend build passes
+- AND the affected workflow is manually or programmatically smoke-tested when practical
+
+### Requirement: OpenSpec task tracking
+
+System-wide work SHALL be tracked through OpenSpec task lists.
+
+#### Scenario: Work begins under an active change
+
+- GIVEN an active change folder exists
+- WHEN a task is implemented
+- THEN the corresponding checkbox in `tasks.md` is updated
+- AND unfinished tasks remain unchecked
+
+### Requirement: Reference benchmark protection
+
+The reference benchmark SHALL remain the primary regression gate for the MVP.
+
+#### Scenario: Benchmark regression
+
+- GIVEN `backend/samples/plan.pdf` previously returned the canonical 134 detections
+- WHEN a change causes a different total or coordinate deviation
+- THEN the change is considered incomplete unless the spec explicitly changes the expected baseline
+
+### Requirement: Dockerized local startup
+
+The project SHALL provide a Docker Compose setup that starts the application locally.
+
+#### Scenario: Local Compose startup
+
+- GIVEN Docker is installed
+- WHEN a developer runs `docker compose up -d`
+- THEN backend and frontend services start
+- AND the frontend is reachable on the documented local port
+- AND the backend health endpoint is reachable on the documented local port
+
+### Requirement: Quality gates before delivery
+
+The project SHALL provide repeatable quality checks for backend and frontend code.
+
+#### Scenario: Local verification
+
+- GIVEN dependencies are installed
+- WHEN a developer runs the project verification command
+- THEN backend linting, type checks, tests, reference benchmark, frontend checks, and E2E tests run
+
+#### Scenario: CI verification
+
+- GIVEN code is pushed to GitHub
+- WHEN GitHub Actions runs
+- THEN the same core quality gates run in CI
+- AND Docker images are built to validate container definitions
+
+### Requirement: Frontend E2E coverage
+
+The project SHALL include browser-level E2E coverage for the core MVP workflow.
+
+#### Scenario: Reference PDF user flow
+
+- GIVEN backend and frontend services can start locally
+- WHEN the E2E suite runs
+- THEN it uploads `backend/samples/plan.pdf`
+- AND verifies the plan preview canvas is usable
+- AND verifies legend extraction returns the current extracted template baseline
+- AND verifies analysis reports the canonical 134 detected boxes

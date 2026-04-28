@@ -79,9 +79,9 @@ test('uploads reference plan, navigates canvas, extracts legend, and analyzes 13
   await page.getByRole('button', { name: 'Dopasuj do widoku' }).click();
 
   await page.getByRole('button', { name: 'Wyodrębnij legendę' }).click();
-  await expect(page.getByText('Wyodrębniono 19 wzorców.')).toBeVisible();
+  await expect(page.getByText('Wyodrębniono 22 wzorców.')).toBeVisible();
   await expect(page.getByTestId('template-symbol-number').first()).toHaveText('01');
-  await expect(page.getByTestId('template-symbol-number').nth(18)).toHaveText('19');
+  await expect(page.getByTestId('template-symbol-number').nth(21)).toHaveText('22');
 
   await analyzeReferencePlan(page);
   const firstLegendName = await page.getByTestId('legend-symbol-name').first().innerText();
@@ -205,9 +205,9 @@ test('shows template lifecycle states for extract, rename, delete, and clear', a
   await expect(page.getByTestId('template-state')).toContainText('Brak wzorców');
 
   await page.getByRole('button', { name: 'Wyodrębnij legendę' }).click();
-  await expect(page.getByText('Wyodrębniono 19 wzorców.')).toBeVisible();
-  await expect(page.getByTestId('template-count')).toHaveText('19 wzorców');
-  await expect(page.getByTestId('template-card')).toHaveCount(19);
+  await expect(page.getByText('Wyodrębniono 22 wzorców.')).toBeVisible();
+  await expect(page.getByTestId('template-count')).toHaveText('22 wzorce');
+  await expect(page.getByTestId('template-card')).toHaveCount(22);
   await expect(page.getByTestId('template-state')).toContainText('Wzorce gotowe do analizy');
 
   page.once('dialog', async (dialog) => {
@@ -219,8 +219,8 @@ test('shows template lifecycle states for extract, rename, delete, and clear', a
 
   await page.getByTestId('template-delete').first().click();
   await expect(page.getByText(/Usunięto wzorzec:/)).toBeVisible();
-  await expect(page.getByTestId('template-count')).toHaveText('18 wzorców');
-  await expect(page.getByTestId('template-card')).toHaveCount(18);
+  await expect(page.getByTestId('template-count')).toHaveText('21 wzorców');
+  await expect(page.getByTestId('template-card')).toHaveCount(21);
 
   await page.getByRole('button', { name: 'Wyczyść wzorce' }).click();
   await expect(page.getByText('Wyczyszczono bazę wzorców.')).toBeVisible();

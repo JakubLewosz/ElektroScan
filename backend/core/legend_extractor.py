@@ -51,6 +51,10 @@ ROW_GROUP_TOLERANCE_PT = 4.0
 ROW_BOUNDARY_MARGIN_PT = 2.5
 SYMBOL_COMPONENT_MIN_AREA = 8
 SYMBOL_CROP_PADDING_PX = 2
+# Some legend rows place the symbol flush against the label text with
+# near-zero gap. Using center_x with this tolerance ensures components
+# are matched even when their left edge slightly exceeds the label boundary.
+SYMBOL_X_OVERHANG_PX = 40
 
 
 def _normalize_heading(value: str) -> str:
@@ -217,7 +221,7 @@ def _row_templates_from_text_blocks(
         row_components = [
             component
             for component in components
-            if component.x < label_left_px and row_top <= component.center_y <= row_bottom
+            if component.center_x < label_left_px + SYMBOL_X_OVERHANG_PX and row_top <= component.center_y <= row_bottom
         ]
         if not row_components:
             continue

@@ -11,20 +11,21 @@ Before changing code, read:
 - `openspec/README.md`
 - `openspec/specs/pdf-processing/spec.md`
 - `openspec/specs/frontend-workflow/spec.md`
-- `openspec/changes/stabilize-elektroscan-system/tasks.md`
-- `openspec/changes/stabilize-elektroscan-system/design.md`
+- `openspec/specs/project-governance/spec.md`
 
 ## Current Source Of Truth
 
 - Canonical legend: `backend/samples/canonical_legend.json`
 - Expected reference counts: `backend/samples/expected_counts.json`
 - Calibrated reference boxes: `backend/samples/reference_boxes.json`
+- Fallback baseline: `backend/samples/fallback_expected_counts.json`
 - Reference PDF: `backend/samples/plan.pdf`
 
-The current accepted reference total is 134 detections, not 138.
+The current accepted reference total is 134 detections.
 
-The user-provided legend has 22 rows. Current extraction still returns 19 templates; preserving all 22 rows is an
-open task and should be fixed before detector threshold/NMS tuning.
+Legend extraction preserves all 22 canonical rows. Detector calibration and
+delivery quality gates are folded into `openspec/specs/`; previous in-progress
+folders are archived under `openspec/changes/archive/`.
 
 ## Verification
 

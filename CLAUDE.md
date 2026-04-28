@@ -7,8 +7,7 @@ Read these files before changing code:
 - @openspec/HANDOFF.md
 - @openspec/specs/pdf-processing/spec.md
 - @openspec/specs/frontend-workflow/spec.md
-- @openspec/changes/stabilize-elektroscan-system/tasks.md
-- @openspec/changes/stabilize-elektroscan-system/design.md
+- @openspec/specs/project-governance/spec.md
 
 ## Current Source Of Truth
 
@@ -17,15 +16,15 @@ Read these files before changing code:
 - Calibrated reference boxes: `backend/samples/reference_boxes.json`
 - Reference PDF: `backend/samples/plan.pdf`
 
-The current accepted reference total is 134 detections, not 138.
+The current accepted reference total is 134 detections.
 
-The legend has 22 canonical rows. Current extraction still returns 19 templates.
-Preserve all 22 rows before tuning detector thresholds or NMS behavior.
+Legend extraction returns all 22 canonical rows. Fallback detector totals are
+recorded in `backend/samples/fallback_expected_counts.json`.
 
 ## Working Rules
 
 - Keep implementation aligned with OpenSpec.
-- If behavior changes, update the relevant OpenSpec change or spec files.
+- If behavior changes, create a new change folder under `openspec/changes/<change-id>/` with proposal/tasks/spec deltas, then merge into `openspec/specs/` after archiving.
 - Do not treat generated session data, frontend build output, or `node_modules` as source of truth.
 - Run `./scripts/verify.sh` after code changes.
 

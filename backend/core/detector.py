@@ -26,6 +26,7 @@ from core.config import (
     MATCH_ROTATIONS,
     MATCH_SCALES,
     MATCH_THRESHOLD_LOOSE,
+    MATCH_THRESHOLD_MEDIUM,
     MATCH_THRESHOLD_STRICT,
     NMS_CENTROID_FACTOR,
     NMS_IOM_THRESHOLD,
@@ -290,7 +291,11 @@ def _match_variants(
         threshold = (
             MATCH_THRESHOLD_STRICT
             if any(key in variant.display_name for key in ("gniazdo", "wypust"))
-            else MATCH_THRESHOLD_LOOSE
+            else (
+                MATCH_THRESHOLD_MEDIUM
+                if any(key in variant.display_name for key in ("lacznik", "oprawa", "orurowanie"))
+                else MATCH_THRESHOLD_LOOSE
+            )
         )
         search_mask = plan_mask
         template_mask = variant.mask

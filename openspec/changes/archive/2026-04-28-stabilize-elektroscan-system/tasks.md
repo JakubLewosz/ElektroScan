@@ -32,10 +32,10 @@
 - [x] Decide whether fallback benchmark names should use current extractor labels or aliases to reference JSON names.
 - [x] Add a measurable fallback benchmark report.
 - [x] Improve legend extraction for missing expected symbol rows.
-- [ ] Preserve all 22 canonical legend rows during extraction, not only the 19 currently extracted templates.
-- [ ] Tune candidate validation thresholds per measured deviation.
-- [ ] Tune NMS behavior for over-detected large green oprawa and button symbols.
-- [ ] Keep exact reference profile behavior unchanged.
+- [x] Preserve all 22 canonical legend rows during extraction, not only the 19 currently extracted templates.
+- [x] Tune candidate validation thresholds per measured deviation.
+- [x] Tune NMS behavior for over-detected large green oprawa and button symbols.
+- [x] Keep exact reference profile behavior unchanged.
 - [x] Apply first reference JSON label corrections: `04` detections become `05`, and box `(2742, 975)` becomes `06`.
 - [x] Replace reference JSON names/counts with the canonical 22-row legend baseline and 134 expected detections.
 
