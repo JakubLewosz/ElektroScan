@@ -1,10 +1,36 @@
 # ElektroScan
 
-Przeglądarkowa aplikacja do zliczania symboli elektrycznych z planu PDF.
+<p align="center">
+  <img alt="Status" src="https://img.shields.io/badge/status-aktywnie%20rozwijany-22C55E?style=for-the-badge&labelColor=111827" />
+  <img alt="Projekt portfolio" src="https://img.shields.io/badge/projekt-g%C5%82%C3%B3wny%20portfolio-38BDF8?style=for-the-badge&labelColor=111827" />
+  <img alt="Stack" src="https://img.shields.io/badge/stack-FastAPI%20%2B%20React-F59E0B?style=for-the-badge&labelColor=111827" />
+</p>
 
-MVP jest zoptymalizowane pod referencyjny plik `backend/samples/plan.pdf`.
+Główny, aktywnie rozwijany projekt portfolio: przeglądarkowa aplikacja do zliczania symboli elektrycznych z planu PDF.
+
+Projekt automatyzuje fragment pracy, który normalnie wymaga ręcznego przeglądania planu: wgrania PDF, odczytania legendy, dobrania wzorców symboli i uruchomienia analizy z podglądem postępu.
+
+## Co Pokazuje Projekt
+
+- pełny przepływ aplikacji webowej: frontend, backend, API i lokalny stan sesji,
+- przetwarzanie PDF oraz renderowanie planu do dalszej analizy,
+- wykrywanie symboli z użyciem OpenCV, PyMuPDF i NumPy,
+- endpointy FastAPI oraz komunikację postępu przez Server-Sent Events,
+- frontend w React, TypeScript, Vite i Tailwind CSS,
+- testy, benchmark referencyjny, smoke test API oraz uruchamianie przez Docker Compose,
+- pracę ze specyfikacją zmian w OpenSpec.
+
+## Status
+
+Projekt jest nadal rozwijany. Aktualne MVP jest zoptymalizowane pod referencyjny plik `backend/samples/plan.pdf`.
 Kanoniczna legenda i liczniki dla tego pliku są zapisane w `backend/samples/canonical_legend.json` oraz
 `backend/samples/expected_counts.json`; aktualny zaakceptowany wynik referencyjny to 134 detekcje.
+
+## Technologie
+
+- Backend: Python, FastAPI, Pydantic, PyMuPDF, OpenCV, NumPy.
+- Frontend: React, TypeScript, Vite, Tailwind CSS, Playwright.
+- Narzędzia: Docker Compose, OpenSpec, skrypty weryfikacyjne, benchmark referencyjny.
 
 ## OpenSpec
 
