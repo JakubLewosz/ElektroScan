@@ -1,6 +1,9 @@
 # ElektroScan
 
 <p align="center">
+  <a href="https://github.com/JakubLewosz/ElektroScan/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/JakubLewosz/ElektroScan/actions/workflows/ci.yml/badge.svg" />
+  </a>
   <img alt="Status" src="https://img.shields.io/badge/status-aktywnie%20rozwijany-22C55E?style=for-the-badge&labelColor=111827" />
   <img alt="Projekt portfolio" src="https://img.shields.io/badge/projekt-g%C5%82%C3%B3wny%20portfolio-38BDF8?style=for-the-badge&labelColor=111827" />
   <img alt="Stack" src="https://img.shields.io/badge/stack-FastAPI%20%2B%20React-F59E0B?style=for-the-badge&labelColor=111827" />
@@ -9,6 +12,10 @@
 Główny, aktywnie rozwijany projekt portfolio: przeglądarkowa aplikacja do zliczania symboli elektrycznych z planu PDF.
 
 Projekt automatyzuje fragment pracy, który normalnie wymaga ręcznego przeglądania planu: wgrania PDF, odczytania legendy, dobrania wzorców symboli i uruchomienia analizy z podglądem postępu.
+
+## Podgląd
+
+![Interfejs ElektroScan](./docs/images/elektroscan-ui.jpg)
 
 ## Co Pokazuje Projekt
 
@@ -31,6 +38,18 @@ Kanoniczna legenda i liczniki dla tego pliku są zapisane w `backend/samples/can
 - Backend: Python, FastAPI, Pydantic, PyMuPDF, OpenCV, NumPy.
 - Frontend: React, TypeScript, Vite, Tailwind CSS, Playwright.
 - Narzędzia: Docker Compose, OpenSpec, skrypty weryfikacyjne, benchmark referencyjny.
+
+## Case Study
+
+**Problem:** ręczne liczenie symboli elektrycznych na planach PDF jest powtarzalne, czasochłonne i podatne na pomyłki.
+
+**Rozwiązanie:** ElektroScan pozwala wgrać plan PDF, wyrenderować go w przeglądarce, wyodrębnić symbole z legendy, uruchomić analizę i przejrzeć wyniki wraz z oznaczeniami na planie.
+
+**Moja rola:** rozwijam projekt jako główny projekt portfolio, skupiając się na połączeniu backendu, przetwarzania PDF, detekcji obrazu, interfejsu użytkownika i automatycznej weryfikacji.
+
+**Efekt MVP:** dla referencyjnego planu `backend/samples/plan.pdf` aplikacja ma zaakceptowany wynik 134 detekcji, testy backendu, testy E2E frontendu, benchmark oraz workflow CI.
+
+**Następne kroki:** publiczna roadmapa jest dostępna w [ROADMAP.md](./ROADMAP.md) oraz w [issue #1-#4](https://github.com/JakubLewosz/ElektroScan/issues).
 
 ## OpenSpec
 
