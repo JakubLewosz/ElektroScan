@@ -2,88 +2,106 @@
 
 <p align="center">
   <a href="https://github.com/JakubLewosz/ElektroScan/actions/workflows/ci.yml">
-    <img alt="ElektroScan CI workflow status" src="https://github.com/JakubLewosz/ElektroScan/actions/workflows/ci.yml/badge.svg" />
+    <img alt="Status automatycznych sprawdzeń ElektroScan" src="https://github.com/JakubLewosz/ElektroScan/actions/workflows/ci.yml/badge.svg" />
   </a>
-  <img alt="Status: active development" src="https://img.shields.io/badge/status-active%20development-22C55E?style=flat-square" />
-  <img alt="Repository scope: public showcase" src="https://img.shields.io/badge/scope-public%20showcase-38BDF8?style=flat-square" />
+  <img alt="Status: aktywny rozwój" src="https://img.shields.io/badge/status-aktywny%20rozw%C3%B3j-22C55E?style=flat-square" />
+  <img alt="Zakres repozytorium: publiczna demonstracja" src="https://img.shields.io/badge/zakres-publiczna%20demonstracja-38BDF8?style=flat-square" />
 </p>
 
-ElektroScan is a browser-based MVP for analysing electrical PDF plans and counting colour-coded symbols. It demonstrates a complete local workflow from PDF upload and legend extraction to computer-vision analysis and manual review of detected symbols.
+ElektroScan to działające w przeglądarce MVP do analizy planów elektrycznych PDF i zliczania symboli oznaczonych kolorami. Pokazuje lokalny proces od przesłania PDF i odczytania legendy po analizę obrazu i ręczną weryfikację wykrytych symboli.
 
 > [!IMPORTANT]
-> The public repository contains an earlier showcase version of ElektroScan. A substantially improved version is currently being developed privately by a two-person team.
+> Publiczne repozytorium zawiera wcześniejszą wersję demonstracyjną ElektroScan. Znacznie bardziej rozwinięta wersja powstaje prywatnie w dwuosobowym zespole.
 
-This README describes only the implementation available in this public repository. It does not document the private version.
+Ten README opisuje wyłącznie implementację dostępną w publicznym repozytorium, nie wersję prywatną.
 
-## Team and project origin
+<a id="team-and-project-origin"></a>
 
-The original project brief was proposed by the director of Technikum Programistyczne INFOTECH in Białystok. ElektroScan was the main project of a 150-hour hybrid vocational software development internship based at the school from 27 April to 25 May 2026.
+## Zespół i pochodzenie projektu
 
-ElektroScan is developed by a two-person team. Both team members share responsibilities across backend development, frontend development, computer vision, testing, and documentation.
+Pierwotny pomysł projektu zaproponował dyrektor Technikum Programistycznego INFOTECH w Białymstoku. ElektroScan był głównym projektem podczas 150-godzinnych praktyk programistycznych, realizowanych hybrydowo w szkole od 27 kwietnia do 25 maja 2026 r.
 
-## Problem and purpose
+Projekt rozwija dwuosobowy zespół. Obaj członkowie dzielą odpowiedzialność za backend, frontend, analizę obrazu, testy i dokumentację.
 
-Counting repeated electrical symbols on a PDF plan can require extensive manual inspection. The public ElektroScan prototype explores a reviewable workflow in which a user can:
+<a id="problem-and-purpose"></a>
 
-- upload an electrical plan as a PDF;
-- inspect its first page and control the visibility of PDF layers;
-- extract symbol templates from the plan legend;
-- run symbol analysis while receiving progress updates;
-- review, confirm, reject, or reclassify detections;
-- add manual detections and exclude selected plan areas.
+## Problem i cel
 
-## What the public version demonstrates
+Zliczanie powtarzających się symboli elektrycznych na planie PDF może wymagać długiego ręcznego sprawdzania. Publiczny prototyp ElektroScan pokazuje proces, w którym użytkownik może:
 
-- Session-scoped PDF uploads, templates, and analysis state.
-- Rendering of the first PDF page at 300 DPI with PyMuPDF.
-- Legend extraction and fallback template matching based on coloured pixels with OpenCV and NumPy.
-- A calibrated reference path for the included sample plan.
-- REST endpoints and Server-Sent Events for analysis progress and results.
-- An interactive plan canvas with pan, zoom, detection overlays, excluded zones, and manual boxes.
-- Local review-state persistence scoped by session and analysis.
-- Automated backend, frontend, browser, benchmark, and container-build checks.
+- przesłać plan elektryczny w PDF;
+- obejrzeć pierwszą stronę i sterować widocznością warstw PDF;
+- wyodrębnić wzorce symboli z legendy;
+- uruchomić analizę z informacją o postępie;
+- sprawdzić, zatwierdzić, odrzucić lub przeklasyfikować wykrycia;
+- dodać wykrycia ręcznie i wykluczyć wybrane obszary planu.
 
-## Public-version screenshot
+<a id="what-the-public-version-demonstrates"></a>
 
-![Public ElektroScan interface showing a PDF plan with detection overlays, controls, and review results](./docs/images/elektroscan-ui.jpg)
+## Funkcje publicznej wersji
 
-The screenshot represents the public showcase interface. Its current application text is in Polish.
+- Przesyłane PDF, wzorce i stan analizy rozdzielone według sesji.
+- Renderowanie pierwszej strony PDF w 300 DPI za pomocą PyMuPDF.
+- Odczyt legendy i zapasowe dopasowanie wzorców na podstawie kolorowych pikseli, z użyciem OpenCV i NumPy.
+- Skalibrowana ścieżka referencyjna dla dołączonego planu przykładowego.
+- Endpointy REST oraz Server-Sent Events do przekazywania postępu i wyników analizy.
+- Interaktywny widok planu z przesuwaniem, powiększaniem, warstwą wykryć, obszarami wykluczonymi i ręcznymi zaznaczeniami.
+- Lokalny zapis stanu weryfikacji, powiązany z sesją i analizą.
+- Automatyczne sprawdzenia backendu, frontendu, przeglądarki, benchmarku i budowania kontenerów.
 
-## Architecture
+<a id="public-version-screenshot"></a>
 
-- **Frontend — `frontend/`:** React and TypeScript application built with Vite and styled with Tailwind CSS. It manages the upload and review workflow, draws the interactive plan canvas, and stores review state in the browser.
-- **Backend — `backend/`:** FastAPI and Pydantic service for PDF rendering, PDF-layer handling, legend-template management, analysis, and session-scoped file storage.
-- **Analysis — `backend/core/`:** PyMuPDF renders the plan; OpenCV and NumPy support legend extraction and fallback template matching. Analysis progress and results are streamed to the frontend with Server-Sent Events.
-- **Reference data — `backend/samples/`:** The included sample PDF has canonical legend, expected-count, context, and calibrated reference-box files used by the repository's regression benchmark.
-- **Quality and delivery:** pytest, Ruff, Black, mypy, Playwright, Docker Compose, GitHub Actions, and a repository-level verification script.
-- **Specifications — `openspec/`:** Current requirements and planned changes are recorded using OpenSpec.
+## Zrzut publicznej wersji
 
-## Technologies
+![Interfejs ElektroScan z planem PDF, oznaczonymi wykryciami, kontrolkami i wynikami weryfikacji](./docs/images/elektroscan-ui.jpg)
 
-| Area | Technologies |
+Zrzut pokazuje interfejs publicznej wersji demonstracyjnej. Teksty aplikacji są po polsku.
+
+<a id="architecture"></a>
+
+## Architektura
+
+- **Frontend — `frontend/`:** aplikacja React i TypeScript, budowana przez Vite i stylowana Tailwind CSS. Obsługuje przesyłanie pliku i weryfikację, rysuje interaktywny plan i zapisuje stan weryfikacji w przeglądarce.
+- **Backend — `backend/`:** serwis FastAPI i Pydantic do renderowania PDF, obsługi warstw, zarządzania wzorcami legendy, analizy i przechowywania plików według sesji.
+- **Analiza — `backend/core/`:** PyMuPDF renderuje plan; OpenCV i NumPy wspierają odczyt legendy i zapasowe dopasowanie wzorców. Postęp i wyniki trafiają do frontendu przez Server-Sent Events.
+- **Dane referencyjne — `backend/samples/`:** dołączony PDF ma pliki wzorcowej legendy, oczekiwanych zliczeń, kontekstu i skalibrowanych obszarów referencyjnych, wykorzystywane w benchmarku regresyjnym.
+- **Jakość i środowisko:** pytest, Ruff, Black, mypy, Playwright, Docker Compose, GitHub Actions i skrypt weryfikacji całego repozytorium.
+- **Specyfikacje — `openspec/`:** aktualne wymagania i planowane zmiany zapisane w OpenSpec.
+
+<a id="technologies"></a>
+
+## Technologie
+
+| Obszar | Technologie |
 | --- | --- |
-| Backend and API | Python 3.12, FastAPI, Pydantic, Uvicorn, Server-Sent Events |
-| Computer vision and documents | OpenCV, PyMuPDF, NumPy |
+| Backend i API | Python 3.12, FastAPI, Pydantic, Uvicorn, Server-Sent Events |
+| Analiza obrazu i dokumentów | OpenCV, PyMuPDF, NumPy |
 | Frontend | React, TypeScript, Vite, Tailwind CSS |
-| Testing and quality | pytest, Ruff, Black, mypy, Playwright |
-| Delivery and documentation | Docker Compose, GitHub Actions, OpenSpec |
+| Testy i jakość | pytest, Ruff, Black, mypy, Playwright |
+| Środowisko i dokumentacja | Docker Compose, GitHub Actions, OpenSpec |
 
-## Current public limitations
+<a id="current-public-limitations"></a>
 
-- The MVP is optimised for the repository's specific reference file, [`backend/samples/plan.pdf`](./backend/samples/plan.pdf), rather than for arbitrary electrical plans.
-- When that exact sample file is analysed, the backend uses its calibrated reference profile. The accepted result of **134 detections applies only to this sample**; it is not an accuracy, precision, recall, or general-performance measurement.
-- Automatic legend extraction currently returns 19 templates from the sample's 22 canonical legend rows. Preserving all 22 rows remains an open calibration task.
-- Other PDFs use fallback OpenCV template matching. Its behaviour is still being calibrated and no general detection-quality claim is made.
-- Only the first page of an uploaded PDF is processed.
-- Working data is stored in local session directories. The public repository contains no user-account system, database persistence, or production deployment configuration.
-- The public interface is currently in Polish.
+## Ograniczenia publicznej wersji
 
-## Setup
+- MVP jest dostrojone do konkretnego pliku referencyjnego [`backend/samples/plan.pdf`](./backend/samples/plan.pdf), a nie do dowolnych planów elektrycznych.
+- Przy analizie dokładnie tego pliku backend korzysta ze skalibrowanego profilu referencyjnego. Zaakceptowany wynik **134 wykryć dotyczy wyłącznie tego przykładu**. Nie jest miarą dokładności, precyzji, czułości ani ogólnej skuteczności.
+- Automatyczny odczyt legendy zwraca obecnie 19 wzorców z 22 wzorcowych wierszy legendy. Zachowanie wszystkich 22 wierszy pozostaje zadaniem do dalszej kalibracji.
+- Inne PDF korzystają z zapasowego dopasowania wzorców OpenCV. Jego działanie jest nadal kalibrowane; projekt nie deklaruje ogólnej jakości wykrywania.
+- Przetwarzana jest tylko pierwsza strona przesłanego PDF.
+- Dane robocze są zapisywane w lokalnych katalogach sesji. Publiczne repozytorium nie ma systemu kont, trwałego zapisu w bazie danych ani konfiguracji wdrożenia produkcyjnego.
+- Publiczny interfejs jest po polsku.
 
-### Prerequisites
+<a id="setup"></a>
 
-- Docker with Docker Compose, or
-- Python 3.12 and Node.js 22 (the versions used by CI and the Docker images) for a manual setup.
+## Uruchomienie
+
+<a id="prerequisites"></a>
+
+### Wymagania
+
+- Docker z Docker Compose albo
+- Python 3.12 i Node.js 22 do instalacji ręcznej — te wersje są używane przez CI i obrazy Docker.
 
 ### Docker Compose
 
@@ -93,20 +111,22 @@ cd ElektroScan
 docker compose up -d --build
 ```
 
-After startup:
+Po uruchomieniu:
 
-- frontend: <http://127.0.0.1:5174/>
-- backend health endpoint: <http://127.0.0.1:8010/api/health>
+- frontend: <http://127.0.0.1:5174/>;
+- endpoint stanu backendu: <http://127.0.0.1:8010/api/health>.
 
-Stop the local stack with:
+Zatrzymanie lokalnych usług:
 
 ```bash
 docker compose down
 ```
 
-### Manual setup
+<a id="manual-setup"></a>
 
-Clone the repository, then start the backend:
+### Instalacja ręczna
+
+Sklonuj repozytorium, a następnie uruchom backend:
 
 ```bash
 cd backend
@@ -116,7 +136,7 @@ pip install -r requirements-dev.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 8010
 ```
 
-In a second terminal, start the frontend:
+W drugim terminalu uruchom frontend:
 
 ```bash
 cd frontend
@@ -124,11 +144,13 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 5174
 ```
 
-Open <http://127.0.0.1:5174/> in a browser.
+Otwórz <http://127.0.0.1:5174/> w przeglądarce.
 
-## Verification and testing
+<a id="verification-and-testing"></a>
 
-The repository provides one local verification command. Before running it, install the backend development requirements, frontend packages, and the Playwright Chromium browser:
+## Weryfikacja i testy
+
+Repozytorium udostępnia jedno polecenie lokalnej weryfikacji. Najpierw zainstaluj zależności deweloperskie backendu, pakiety frontendu i przeglądarkę Chromium dla Playwright:
 
 ```bash
 cd backend
@@ -143,19 +165,19 @@ cd ..
 ./scripts/verify.sh
 ```
 
-The script runs backend compilation, Ruff, Black, mypy, pytest, the reference-sample benchmark, frontend type checks and build, and Playwright end-to-end tests. The GitHub Actions workflow runs equivalent quality checks and also validates the Docker image builds.
+Skrypt uruchamia kompilację backendu, Ruff, Black, mypy, pytest, benchmark planu referencyjnego, sprawdzanie typów i kompilację frontendu oraz testy end-to-end Playwright. GitHub Actions wykonuje równoważne sprawdzenia jakości i dodatkowo weryfikuje budowanie obrazów Docker.
 
-To run the API smoke flow, start the backend on port `8010` and use:
+Aby wykonać podstawowe sprawdzenie przepływu API, uruchom backend na porcie `8010` i wykonaj:
 
 ```bash
 backend/.venv/bin/python scripts/api_smoke.py
 ```
 
-The fallback detector has a separate, slower benchmark:
+Zapasowy detektor ma oddzielny, wolniejszy benchmark:
 
 ```bash
 cd backend
 .venv/bin/python fallback_benchmark.py --strict
 ```
 
-The benchmark result for 134 detections is scoped exclusively to the included reference sample and must not be interpreted as performance on other plans.
+Wynik benchmarku wynoszący 134 wykrycia dotyczy wyłącznie dołączonego przykładu referencyjnego. Nie wolno interpretować go jako skuteczności na innych planach.
